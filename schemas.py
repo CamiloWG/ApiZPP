@@ -7,6 +7,16 @@ class EventoCreate(BaseModel):
     tipo: str  # entrada / salida
 
 
+class EventoResponse(BaseModel):
+    id: int
+    placa: str
+    tipo: str
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class EstadiaResponse(BaseModel):
     id: int
     placa: str
@@ -15,7 +25,7 @@ class EstadiaResponse(BaseModel):
     minutos_total: int | None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class FacturaResponse(BaseModel):
@@ -27,4 +37,4 @@ class FacturaResponse(BaseModel):
     fecha: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
