@@ -9,7 +9,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="API Zonas de Parqueo Pago",
     description="Sistema de automatización para el cobro en zonas de parqueo pago",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Configurar CORS para permitir peticiones desde el frontend
@@ -37,8 +37,8 @@ def root():
         "endpoints": {
             "eventos": "/eventos",
             "estadias": "/estadias",
-            "facturas": "/facturas"
-        }
+            "facturas": "/facturas",
+        },
     }
 
 
@@ -50,4 +50,5 @@ def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+    uvicorn.run(app, host="0.0.0.0", port=80)
