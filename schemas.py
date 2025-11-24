@@ -21,8 +21,8 @@ class EstadiaResponse(BaseModel):
     id: int
     placa: str
     entrada: datetime
-    salida: datetime | None
-    minutos_total: int | None
+    salida: datetime
+    minutos_total: int
 
     class Config:
         from_attributes = True
