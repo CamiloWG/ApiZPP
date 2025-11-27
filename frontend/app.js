@@ -1,15 +1,28 @@
 // Configuración de la API
 const API_URL = 'http://ec2-3-235-224-129.compute-1.amazonaws.com:8000';
-const POLLING_INTERVAL = 3000; // 3 segundos
+const POLLING_INTERVAL = 10000; // 3 segundos
 const TOTAL_SPOTS = 12; // Total de espacios de parqueo
+const DEBUG_MODE = false; // Activar para ver logs de optimización
 
-// Estado de la aplicación
+
+// Estado de la aplicación con control de cambios
 let state = {
     estadias: [],
     eventos: [],
     facturas: [],
     lastEventId: 0,
-    lastFacturaId: 0
+    lastFacturaId: 0,
+    // Mapas para tracking rápido
+    estadiasMap: new Map(), // placa -> estadia
+    eventosMap: new Map(),  // id -> evento
+    facturasMap: new Map(), // id -> factura
+    // Flags de cambios
+    hasChanges: {
+        estadias: false,
+        eventos: false,
+        facturas: false,
+        stats: false
+    }
 };
 
 // Placas de ejemplo para simulación
@@ -112,11 +125,59 @@ async function loadEstadias() {
     try {
         const response = await fetch(`${API_URL}/estadias/`);
         if (response.ok) {
-            state.estadias = await response.json();
+            const newEstadias = await response.json();
+            
+            // Detectar cambios comparando con estado anterior
+            const hasChanges = detectEstadiaChanges(newEstadias);
+            
+            if (hasChanges) {
+                state.estadias = newEstadias;
+                // Actualizar mapa para búsquedas rápidas
+                updateEstadiasMap(newEstadias);
+                state.hasChanges.estadias = true;
+                state.hasChanges.stats = true;
+            }
         }
     } catch (error) {
         console.error('Error cargando estadías:', error);
     }
+}
+
+// Detectar cambios en estadías
+function detectEstadiaChanges(newEstadias) {
+    // Si es la primera carga
+    if (state.estadias.length === 0 && newEstadias.length > 0) {
+        return true;
+    }
+    
+    // Si cambió el número de estadías
+    if (state.estadias.length !== newEstadias.length) {
+        return true;
+    }
+    
+    // Verificar cambios en estadías existentes
+    for (const newEstadia of newEstadias) {
+        const oldEstadia = state.estadiasMap.get(newEstadia.id);
+        
+        if (!oldEstadia) {
+            return true; // Nueva estadía
+        }
+        
+        // Verificar si cambió el estado (salida)
+        if (oldEstadia.salida !== newEstadia.salida) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// Actualizar mapa de estadías
+function updateEstadiasMap(estadias) {
+    state.estadiasMap.clear();
+    estadias.forEach(estadia => {
+        state.estadiasMap.set(estadia.id, estadia);
+    });
 }
 
 // Cargar eventos de la API
@@ -126,21 +187,30 @@ async function loadEventos() {
         if (response.ok) {
             const eventos = await response.json();
             
-            // Detectar nuevos eventos
+            // Detectar solo eventos NUEVOS (con ID mayor al último conocido)
             const newEvents = eventos.filter(e => e.id > state.lastEventId);
             
             if (newEvents.length > 0) {
+                // Actualizar último ID conocido
                 state.lastEventId = Math.max(...eventos.map(e => e.id));
                 
-                // Mostrar notificación para cada nuevo evento
+                // Agregar nuevos eventos al principio de la lista
+                state.eventos = [...newEvents.reverse(), ...state.eventos].slice(0, 10);
+                
+                // Actualizar mapa
+                newEvents.forEach(evento => {
+                    state.eventosMap.set(evento.id, evento);
+                });
+                
+                state.hasChanges.eventos = true;
+                
+                // Mostrar notificación solo para eventos nuevos
                 newEvents.forEach(evento => {
                     const tipo = evento.tipo === 'entrada' ? 'success' : 'error';
                     const emoji = evento.tipo === 'entrada' ? '🚗 Entrada' : '🚀 Salida';
                     showNotification(tipo, emoji, `Vehículo ${evento.placa}`);
                 });
             }
-            
-            state.eventos = eventos.slice(-10).reverse(); // Últimos 10 eventos
         }
     } catch (error) {
         console.error('Error cargando eventos:', error);
@@ -154,46 +224,109 @@ async function loadFacturas() {
         if (response.ok) {
             const facturas = await response.json();
             
-            // Detectar nuevas facturas
+            // Detectar solo facturas NUEVAS
             const newInvoices = facturas.filter(f => f.id > state.lastFacturaId);
             
             if (newInvoices.length > 0) {
+                // Actualizar último ID conocido
                 state.lastFacturaId = Math.max(...facturas.map(f => f.id));
                 
-                // Mostrar notificación para nuevas facturas
+                // Agregar nuevas facturas al principio de la lista
+                state.facturas = [...newInvoices.reverse(), ...state.facturas].slice(0, 10);
+                
+                // Actualizar mapa
+                newInvoices.forEach(factura => {
+                    state.facturasMap.set(factura.id, factura);
+                });
+                
+                state.hasChanges.facturas = true;
+                state.hasChanges.stats = true; // Las facturas afectan el total
+                
+                // Mostrar notificación solo para nuevas facturas
                 newInvoices.forEach(factura => {
                     showNotification('success', '💰 Factura Generada', 
                         `${factura.placa} - $${factura.total.toLocaleString()}`);
                 });
             }
-            
-            state.facturas = facturas.slice(-10).reverse(); // Últimas 10 facturas
         }
     } catch (error) {
         console.error('Error cargando facturas:', error);
     }
 }
 
-// Actualizar interfaz de usuario
+// Actualizar interfaz de usuario solo si hay cambios
 function updateUI() {
-    updateParkingSpots();
-    updateEventsList();
-    updateInvoicesList();
-    updateStats();
+    let updatesCount = 0;
+    
+    // Solo actualizar espacios de parqueo si cambiaron las estadías
+    if (state.hasChanges.estadias) {
+        if (DEBUG_MODE) console.log('🔄 Actualizando espacios de parqueo');
+        updateParkingSpots();
+        state.hasChanges.estadias = false;
+        updatesCount++;
+    }
+    
+    // Solo actualizar eventos si hay nuevos
+    if (state.hasChanges.eventos) {
+        if (DEBUG_MODE) console.log('🔄 Actualizando lista de eventos');
+        updateEventsList();
+        state.hasChanges.eventos = false;
+        updatesCount++;
+    }
+    
+    // Solo actualizar facturas si hay nuevas
+    if (state.hasChanges.facturas) {
+        if (DEBUG_MODE) console.log('🔄 Actualizando lista de facturas');
+        updateInvoicesList();
+        state.hasChanges.facturas = false;
+        updatesCount++;
+    }
+    
+    // Solo actualizar estadísticas si cambió algo relevante
+    if (state.hasChanges.stats) {
+        if (DEBUG_MODE) console.log('🔄 Actualizando estadísticas');
+        updateStats();
+        state.hasChanges.stats = false;
+        updatesCount++;
+    }
+    
+    if (DEBUG_MODE && updatesCount === 0) {
+        console.log('✅ Sin cambios - No se actualizó nada');
+    }
 }
 
-// Actualizar espacios de parqueo
+// Actualizar espacios de parqueo (solo los que cambiaron)
 function updateParkingSpots() {
     const estadiasActivas = state.estadias.filter(e => e.salida === null);
     const spots = document.querySelectorAll('.parking-spot');
     
-    // Resetear todos los espacios
+    // Crear un mapa de placas activas para búsqueda rápida
+    const placasActivasMap = new Map();
+    estadiasActivas.forEach((estadia, index) => {
+        if (index < TOTAL_SPOTS) {
+            placasActivasMap.set(index, estadia);
+        }
+    });
+    
+    // Actualizar cada espacio solo si cambió
     spots.forEach((spot, index) => {
-        if (index < estadiasActivas.length) {
-            const estadia = estadiasActivas[index];
-            updateSpot(spot, estadia, true);
+        const estadia = placasActivasMap.get(index);
+        const currentPlate = spot.querySelector('.spot-plate').textContent;
+        const isCurrentlyOccupied = spot.classList.contains('occupied');
+        const shouldBeOccupied = estadia !== undefined;
+        
+        // Detectar si cambió el estado de este espacio
+        if (shouldBeOccupied) {
+            const newPlate = estadia.placa;
+            // Solo actualizar si es un cambio (nueva ocupación o cambio de placa)
+            if (!isCurrentlyOccupied || currentPlate !== newPlate) {
+                updateSpot(spot, estadia, true);
+            }
         } else {
-            updateSpot(spot, null, false);
+            // Solo actualizar si estaba ocupado y ahora está libre
+            if (isCurrentlyOccupied) {
+                updateSpot(spot, null, false);
+            }
         }
     });
 }
@@ -220,10 +353,11 @@ function updateSpot(spot, estadia, occupied) {
     }
 }
 
-// Actualizar lista de eventos
+// Actualizar lista de eventos (solo agregar nuevos)
 function updateEventsList() {
     const eventsList = document.getElementById('eventsList');
     
+    // Si no hay eventos, mostrar empty state
     if (state.eventos.length === 0) {
         eventsList.innerHTML = `
             <div class="empty-state">
@@ -237,8 +371,41 @@ function updateEventsList() {
         return;
     }
     
-    eventsList.innerHTML = state.eventos.map(evento => `
-        <div class="event-item ${evento.tipo}">
+    // Si es la primera carga, renderizar todo
+    const existingEvents = eventsList.querySelectorAll('.event-item');
+    if (existingEvents.length === 0) {
+        eventsList.innerHTML = state.eventos.map(evento => createEventHTML(evento)).join('');
+        return;
+    }
+    
+    // Solo agregar eventos nuevos al inicio
+    const existingIds = new Set(
+        Array.from(existingEvents).map(el => parseInt(el.dataset.eventId))
+    );
+    
+    const newEventos = state.eventos.filter(e => !existingIds.has(e.id));
+    
+    if (newEventos.length > 0) {
+        // Agregar nuevos eventos al inicio
+        newEventos.reverse().forEach(evento => {
+            const eventHTML = createEventHTML(evento);
+            eventsList.insertAdjacentHTML('afterbegin', eventHTML);
+        });
+        
+        // Mantener solo los últimos 10
+        const allEvents = eventsList.querySelectorAll('.event-item');
+        if (allEvents.length > 10) {
+            for (let i = 10; i < allEvents.length; i++) {
+                allEvents[i].remove();
+            }
+        }
+    }
+}
+
+// Crear HTML de un evento
+function createEventHTML(evento) {
+    return `
+        <div class="event-item ${evento.tipo}" data-event-id="${evento.id}">
             <div class="event-header">
                 <div class="event-type ${evento.tipo}">
                     ${evento.tipo === 'entrada' ? '🚗 Entrada' : '🚀 Salida'}
@@ -247,13 +414,14 @@ function updateEventsList() {
             </div>
             <div class="event-plate">${evento.placa}</div>
         </div>
-    `).join('');
+    `;
 }
 
-// Actualizar lista de facturas
+// Actualizar lista de facturas (solo agregar nuevas)
 function updateInvoicesList() {
     const invoicesList = document.getElementById('invoicesList');
     
+    // Si no hay facturas, mostrar empty state
     if (state.facturas.length === 0) {
         invoicesList.innerHTML = `
             <div class="empty-state">
@@ -269,8 +437,41 @@ function updateInvoicesList() {
         return;
     }
     
-    invoicesList.innerHTML = state.facturas.map(factura => `
-        <div class="invoice-card" onclick="showInvoiceDetail(${factura.id})">
+    // Si es la primera carga, renderizar todo
+    const existingInvoices = invoicesList.querySelectorAll('.invoice-card');
+    if (existingInvoices.length === 0) {
+        invoicesList.innerHTML = state.facturas.map(factura => createInvoiceHTML(factura)).join('');
+        return;
+    }
+    
+    // Solo agregar facturas nuevas al inicio
+    const existingIds = new Set(
+        Array.from(existingInvoices).map(el => parseInt(el.dataset.invoiceId))
+    );
+    
+    const newFacturas = state.facturas.filter(f => !existingIds.has(f.id));
+    
+    if (newFacturas.length > 0) {
+        // Agregar nuevas facturas al inicio
+        newFacturas.reverse().forEach(factura => {
+            const invoiceHTML = createInvoiceHTML(factura);
+            invoicesList.insertAdjacentHTML('afterbegin', invoiceHTML);
+        });
+        
+        // Mantener solo las últimas 10
+        const allInvoices = invoicesList.querySelectorAll('.invoice-card');
+        if (allInvoices.length > 10) {
+            for (let i = 10; i < allInvoices.length; i++) {
+                allInvoices[i].remove();
+            }
+        }
+    }
+}
+
+// Crear HTML de una factura
+function createInvoiceHTML(factura) {
+    return `
+        <div class="invoice-card" data-invoice-id="${factura.id}" onclick="showInvoiceDetail(${factura.id})">
             <div class="invoice-header">
                 <div class="invoice-plate">${factura.placa}</div>
                 <div class="invoice-amount">$${factura.total.toLocaleString()}</div>
@@ -280,7 +481,7 @@ function updateInvoicesList() {
                 <span>${formatTime(factura.fecha)}</span>
             </div>
         </div>
-    `).join('');
+    `;
 }
 
 // Actualizar estadísticas
