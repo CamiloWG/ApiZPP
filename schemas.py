@@ -22,7 +22,7 @@ class EstadiaResponse(BaseModel):
     id: int
     placa: str
     entrada: datetime
-    salida: datetime
+    salida: Optional[datetime]
     minutos_total: Optional[int]
 
     class Config:
