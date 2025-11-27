@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Parqueo Automatizado</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <rect width="40" height="40" rx="8" fill="#4CAF50"/>
+                    <text x="50%" y="50%" text-anchor="middle" dy=".35em" fill="white" font-size="24" font-weight="bold">P</text>
+                </svg>
+                <h1>Sistema de Parqueo Automatizado</h1>
+            </div>
+            <div class="header-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Ocupados</span>
+                    <span class="stat-value" id="ocupados">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Disponibles</span>
+                    <span class="stat-value" id="disponibles">12</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Hoy</span>
+                    <span class="stat-value" id="totalHoy">$0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="grid">
+                <!-- Zona de Parqueo -->
+                <section class="parking-zone">
+                    <div class="section-header">
+                        <h2>🚗 Zona de Parqueo</h2>
+                        <div class="status-indicator">
+                            <span class="status-dot"></span>
+                            <span>Sistema Activo</span>
+                        </div>
+                    </div>
+                    <div class="parking-grid" id="parkingGrid">
+                        <!-- Los espacios se generarán dinámicamente -->
+                    </div>
+                </section>
+
+                <!-- Panel Lateral -->
+                <aside class="sidebar">
+                    <!-- Eventos en Tiempo Real -->
+                    <section class="events-panel">
+                        <div class="section-header">
+                            <h2>📊 Eventos en Tiempo Real</h2>
+                            <button class="refresh-btn" id="refreshBtn" title="Actualizar">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="events-list" id="eventsList">
+                            <div class="empty-state">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                                <p>No hay eventos recientes</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Facturas Recientes -->
+                    <section class="invoices-panel">
+                        <div class="section-header">
+                            <h2>💰 Facturas Recientes</h2>
+                        </div>
+                        <div class="invoices-list" id="invoicesList">
+                            <div class="empty-state">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                                <p>No hay facturas generadas</p>
+                            </div>
+                        </div>
+                    </section>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <!-- Notifications Container -->
+    <div class="notifications" id="notifications"></div>
+
+    <!-- Modal para detalles de factura -->
+    <div class="modal" id="invoiceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Detalle de Factura</h2>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Controls (para demostración) -->
+    <div class="test-controls">
+        <button class="test-btn" id="testEntrada">🚗 Simular Entrada</button>
+        <button class="test-btn" id="testSalida">🚀 Simular Salida</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

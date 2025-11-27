@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía Rápida - Frontend Parqueadero</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            text-align: center;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .step h3 {
+            display: inline;
+            color: #333;
+            font-size: 1.2rem;
+        }
+        
+        .step-content {
+            margin-top: 15px;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        code {
+            background: #2d3748;
+            color: #68d391;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .command {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        
+        .button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 20px 10px 20px 0;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .button.secondary {
+            background: #48bb78;
+        }
+        
+        .button.secondary:hover {
+            background: #38a169;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            color: #856404;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            color: #155724;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .feature {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .feature-text {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Guía Rápida de Inicio</h1>
+        
+        <div class="success">
+            <strong>✅ Sistema Listo:</strong> Tu frontend está completamente configurado y listo para usar.
+        </div>
+        
+        <div class="step">
+            <span class="step-number">1</span>
+            <h3>Iniciar la API</h3>
+            <div class="step-content">
+                Primero, asegúrate de que la API esté ejecutándose:
+                <div class="command">python main.py</div>
+                Debería estar en: <code>http://localhost:8000</code>
+            </div>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">2</span>
+            <h3>Abrir el Frontend</h3>
+            <div class="step-content">
+                Simplemente abre el archivo <code>index.html</code> en tu navegador preferido.
+                <br><br>
+                <strong>Opción alternativa</strong> (si hay problemas de CORS):
+                <div class="command">python -m http.server 8080</div>
+                Luego abre: <code>http://localhost:8080</code>
+            </div>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">3</span>
+            <h3>Usar la Interfaz</h3>
+            <div class="step-content">
+                <strong>Botones de simulación (parte inferior):</strong>
+                <ul style="margin-top: 10px; margin-left: 20px; color: #666;">
+                    <li>🚗 <strong>Simular Entrada</strong>: Ingresa un vehículo aleatorio</li>
+                    <li>🚀 <strong>Simular Salida</strong>: Registra salida y genera factura</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="warning">
+            <strong>⚡ Actualización Automática:</strong> El sistema se actualiza cada 3 segundos automáticamente. No necesitas refrescar la página.
+        </div>
+        
+        <h2 style="margin-top: 30px; margin-bottom: 20px; color: #333;">🎯 Características Principales</h2>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🚗</div>
+                <div class="feature-text"><strong>12 Espacios</strong><br>Dinámicos y visuales</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <div class="feature-text"><strong>Eventos</strong><br>En tiempo real</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">💰</div>
+                <div class="feature-text"><strong>Facturas</strong><br>Automáticas</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔔</div>
+                <div class="feature-text"><strong>Notificaciones</strong><br>Instantáneas</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📈</div>
+                <div class="feature-text"><strong>Estadísticas</strong><br>En vivo</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🎨</div>
+                <div class="feature-text"><strong>Animaciones</strong><br>Fluidas</div>
+            </div>
+        </div>
+        
+        <div class="center" style="margin-top: 30px;">
+            <a href="index.html" class="button">🚀 Abrir Sistema de Parqueo</a>
+            <a href="http://localhost:8000/docs" class="button secondary" target="_blank">📖 Ver API Docs</a>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+            <h3 style="color: #333; margin-bottom: 15px;">📝 Tips para la Presentación</h3>
+            <ol style="color: #666; line-height: 2; margin-left: 20px;">
+                <li>Limpia la base de datos antes: <code>rm parking.db</code></li>
+                <li>Muestra las animaciones de entrada/salida</li>
+                <li>Destaca las notificaciones en tiempo real</li>
+                <li>Abre el modal de factura para mostrar detalles</li>
+                <li>Menciona la actualización automática cada 3 segundos</li>
+                <li>Explica la tarifa de 80 pesos/minuto</li>
+            </ol>
+        </div>
+        
+        <div class="center" style="margin-top: 30px; color: #666; font-size: 0.9rem;">
+            <p>Sistema desarrollado para demostración del proyecto de Zonas de Parqueo Pago</p>
+            <p style="margin-top: 10px;">✨ <strong>¡Listo para impresionar!</strong> ✨</p>
+        </div>
+    </div>
+</body>
+</html>
