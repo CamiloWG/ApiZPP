@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import Evento, Estadia
 from schemas import EventoCreate, EventoResponse
+from routes.facturas import crear_factura
 from datetime import datetime
 from utils import calcular_minutos
 
@@ -21,17 +22,16 @@ def get_db():
 def registrar_evento(evento: EventoCreate, db: Session = Depends(get_db)):
     """
     Registra un evento de entrada o salida de un vehículo.
-    
+
     - Para entrada: Crea una nueva estadía
     - Para salida: Cierra la estadía abierta y calcula el tiempo
     """
     # Validar que el tipo sea correcto
     if evento.tipo not in ["entrada", "salida"]:
         raise HTTPException(
-            status_code=400,
-            detail="El tipo debe ser 'entrada' o 'salida'"
+            status_code=400, detail="El tipo debe ser 'entrada' o 'salida'"
         )
-    
+
     # Registrar el evento
     nuevo_evento = Evento(placa=evento.placa, tipo=evento.tipo)
     db.add(nuevo_evento)
@@ -45,25 +45,25 @@ def registrar_evento(evento: EventoCreate, db: Session = Depends(get_db)):
             .filter(Estadia.placa == evento.placa, Estadia.salida == None)
             .first()
         )
-        
+
         if estadia_abierta:
             raise HTTPException(
                 status_code=400,
-                detail=f"El vehículo {evento.placa} ya tiene una entrada registrada sin salida"
+                detail=f"El vehículo {evento.placa} ya tiene una entrada registrada sin salida",
             )
-        
+
         # Crear nueva estadía
         est = Estadia(placa=evento.placa, entrada=datetime.utcnow())
         db.add(est)
         db.commit()
-        
+
         return {
             "message": "Entrada registrada exitosamente",
             "placa": evento.placa,
             "tipo": "entrada",
-            "timestamp": nuevo_evento.timestamp
+            "timestamp": nuevo_evento.timestamp,
         }
-    
+
     else:  # salida
         # Cerrar estadía abierta
         estadia = (
@@ -75,20 +75,22 @@ def registrar_evento(evento: EventoCreate, db: Session = Depends(get_db)):
         if not estadia:
             raise HTTPException(
                 status_code=404,
-                detail=f"No se encontró una entrada sin salida para la placa {evento.placa}"
+                detail=f"No se encontró una entrada sin salida para la placa {evento.placa}",
             )
 
         estadia.salida = datetime.utcnow()
         estadia.minutos_total = calcular_minutos(estadia.entrada, estadia.salida)
         db.commit()
-        
+
+        crear_factura(evento.placa, db)
+
         return {
             "message": "Salida registrada exitosamente",
             "placa": evento.placa,
             "tipo": "salida",
             "timestamp": nuevo_evento.timestamp,
             "minutos_total": estadia.minutos_total,
-            "tarifa_estimada": estadia.minutos_total * 80
+            "tarifa_estimada": estadia.minutos_total * 80,
         }
 
 
@@ -102,11 +104,10 @@ def listar_eventos(db: Session = Depends(get_db)):
 def obtener_eventos_placa(placa: str, db: Session = Depends(get_db)):
     """Obtiene todos los eventos de una placa específica"""
     eventos = db.query(Evento).filter(Evento.placa == placa).all()
-    
+
     if not eventos:
         raise HTTPException(
-            status_code=404,
-            detail=f"No se encontraron eventos para la placa {placa}"
+            status_code=404, detail=f"No se encontraron eventos para la placa {placa}"
         )
-    
+
     return eventos
