@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
 
 
 class EventoCreate(BaseModel):
@@ -22,7 +23,7 @@ class EstadiaResponse(BaseModel):
     placa: str
     entrada: datetime
     salida: datetime
-    minutos_total: int
+    minutos_total: Optional[int]
 
     class Config:
         from_attributes = True
