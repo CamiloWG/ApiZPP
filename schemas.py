@@ -3,39 +3,55 @@ from datetime import datetime
 from typing import Optional
 
 
-class EventoCreate(BaseModel):
+# --- Esqueas para Placa ---
+class PlacaBase(BaseModel):
     placa: str
-    tipo: str  # entrada / salida
 
+class PlacaCreate(PlacaBase):
+    pass
 
-class EventoResponse(BaseModel):
-    id: int
-    placa: str
-    tipo: str
-    timestamp: datetime
+class PlacaResponse(PlacaBase):
+    id_placa: int
 
     class Config:
         from_attributes = True
 
 
-class EstadiaResponse(BaseModel):
-    id: int
+# --- Esquemas para VehiculoRobado ---
+class VehiculoRobadoBase(BaseModel):
     placa: str
-    entrada: datetime
-    salida: Optional[datetime]
-    minutos_total: Optional[int]
+    estado: str
+
+class VehiculoRobadoCreate(VehiculoRobadoBase):
+    pass
+
+class VehiculoRobadoResponse(VehiculoRobadoBase):
+    id_vehiculo: int
+    fecha_reporte: datetime
 
     class Config:
         from_attributes = True
 
 
-class FacturaResponse(BaseModel):
-    id: int
+# --- Esquemas para Evento ---
+class EventoBase(BaseModel):
     placa: str
-    minutos: int
-    tarifa_minuto: float
-    total: float
-    fecha: datetime
+    ubicacion: str
+    tipo_evento: str
+
+class EventoCreate(EventoBase):
+    pass
+
+class EventoResponse(EventoBase):
+    id_evento: int
+    fecha_hora: datetime
 
     class Config:
         from_attributes = True
+
+
+# --- Esquemas para la verificación de placa ---
+class VerificacionPlaca(BaseModel):
+    placa: str
+    ubicacion: str
+    tipo_evento: str

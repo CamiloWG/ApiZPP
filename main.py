@@ -1,15 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, engine
-from routes import eventos, estadias, facturas
+from routes import eventos, placas, vehiculos_robados
 
 # Crear tablas en la base de datos
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="API Zonas de Parqueo Pago",
-    description="Sistema de automatización para el cobro en zonas de parqueo pago",
-    version="1.0.0",
+    title="API de Vehículos Robados",
+    description="Sistema para el registro de vehículos robados y generación de eventos",
+    version="2.0.0",
 )
 
 # Configurar CORS para permitir peticiones desde el frontend
@@ -22,22 +22,21 @@ app.add_middleware(
 )
 
 # Incluir routers
+app.include_router(placas.router)
+app.include_router(vehiculos_robados.router)
 app.include_router(eventos.router)
-app.include_router(estadias.router)
-app.include_router(facturas.router)
-
 
 @app.get("/")
 def root():
     """Endpoint raíz de la API"""
     return {
-        "mensaje": "API de Zonas de Parqueo Pago",
-        "version": "1.0.0",
+        "mensaje": "API de Vehículos Robados",
+        "version": "2.0.0",
         "documentacion": "/docs",
         "endpoints": {
+            "placas": "/placas",
+            "vehiculos_robados": "/vehiculos_robados",
             "eventos": "/eventos",
-            "estadias": "/estadias",
-            "facturas": "/facturas",
         },
     }
 
